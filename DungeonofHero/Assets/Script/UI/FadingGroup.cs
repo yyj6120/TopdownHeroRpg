@@ -43,8 +43,6 @@ public class FadingGroup : MonoBehaviour
     /**
      * 
      */
-    private Fade currentFade;
-
     public float FadeStep
     {
         get
@@ -62,12 +60,7 @@ public class FadingGroup : MonoBehaviour
     {
         get
         {
-            return currentFade;
-        }
-
-        set
-        {
-            currentFade = value;
+            return fade;
         }
     }
 

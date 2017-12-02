@@ -20030,8 +20030,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   heroDefinitions:
   - Classdefinition:
-      id: warrior
-      name: "\uC6CC\uB9AC\uC5B4"
+      id: gunner
+      name: "\uAC70\uB108"
       description: 
       symbol: {fileID: 0}
     speed: 0
