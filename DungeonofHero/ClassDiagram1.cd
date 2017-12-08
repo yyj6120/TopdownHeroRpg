@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="BasicBehaviour">
+    <Position X="0.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>gA4ACCAQQgIQAIAAUBABKBiSAoBAMAGARXJBCaigAEE=</HashCode>
+      <FileName>Assets\Script\Player\BasicBehaviour.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="GenericBehaviour">
+    <Position X="5.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>BABAQAAAQSAAIAQAAABgAAIAAAACCAABBAAgAACAAAA=</HashCode>
+      <FileName>Assets\Script\Player\BasicBehaviour.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MoveBehaviour">
+    <Position X="9" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AgRCAAQAICQAIAAAAIRAIABCAAAAGQAECAAAACCQAAA=</HashCode>
+      <FileName>Assets\Script\Player\MoveBehaviour.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Font Name="맑은 고딕" Size="9" />
+</ClassDiagram>
