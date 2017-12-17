@@ -1,0 +1,13 @@
+﻿
+<!-- sagolboss : Assembly Name이 적혀 있을 시 해당 파일명의 DLL의 ServiceHost Service 내용을 참조한다.
+                 만약 Assembly Name이 없다면 Bin 폴더에서 ServiceHost Service 내용을 포함하는 DLL 중 가장 최신것을 참조한다.
+                 Debug / Release 모드를 나누고 싶다면 Debug.svc, Release.svc 파일을 제작하여 아래 처럼 Assembly Name 기입 해놓는다.
+                
+                * Debug
+                <- %@ Assembly Name = "Debug-GameServer" %>
+                * Release
+                <- %@ Assembly Name = "GameServer" %>
+-->
+
+<%@ ServiceHost Service="SJ.GameServer.Service.Game.GameService" Factory="System.ServiceModel.Activation.WebServiceHostFactory" %>
+
