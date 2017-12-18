@@ -23,6 +23,7 @@ namespace SJ.GameServer.Service
         Auth_Fail_No_User,
         Auth_Fail_Not_Registered_Username,
         Auth_Fail_Expiration_AuthToken,
+        Auth_Fail_Mismatch_Confirm_Password,
         Auth_Fail_Mismatch_Client_Ver,
 
         Auth_Add_User_Fail = 150,

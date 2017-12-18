@@ -48,22 +48,21 @@ public class LoginMenu : MonoBehaviour
         switch (response.errorCode)
         {
             case (int)CommonErrorCode.Auth_Fail_Wrong_Username_PW:
-                Debug.Log("유저이름과 비밀번호가 맞지 않습니다");
+                MainUI.s_Instance.ShowInfoPopup("유저이름과 비밀번호가 맞지 않습니다.");
                 return true;
 
             case (int)CommonErrorCode.Auth_Fail_Not_Registered_Username:
-                Debug.Log("등록 되지 않은 유저이름 입니다");
+                MainUI.s_Instance.ShowInfoPopup("등록 되지 않은 유저이름 입니다.");               
                 return true;
 
             case (int)CommonErrorCode.Auth_Fail_Expiration_AuthToken:
-                Debug.Log("토큰이 만료 되었습니다");
+                MainUI.s_Instance.ShowInfoPopup("토큰이 만료 되었습니다.");
                 return true;
 
             case (int)CommonErrorCode.Auth_Fail_Mismatch_Client_Ver:
-                Debug.Log("맞지 않는 버전입니다");
+                MainUI.s_Instance.ShowInfoPopup("맞지 않는 버전입니다.");
                 return true;
         }
-
         return false;
     }
 

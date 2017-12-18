@@ -1,4 +1,9 @@
 using UnityEngine;
+using UnityEngine.UI;
+using System.Collections;
+using UnityEngine.SceneManagement;
+using SJ.GameServer.Service;
+using SJ.GameServer.Service.GameService.Message;
 /**
  * 
  */
@@ -21,25 +26,28 @@ public class MainUI : PersistentSingleton<MainUI>
      * 
      */
     [SerializeField]
-    protected CanvasGroup SplashPanel;
+    protected CanvasGroup splashPanel;
 
     [SerializeField]
-    protected CanvasGroup LoginPanel;
+    protected CanvasGroup loginPanel;
 
     [SerializeField]
-    protected CanvasGroup CreateAccountPanel;
+    protected CanvasGroup createAccountPanel;
 
     [SerializeField]
-    protected CanvasGroup LobbyPanel;
+    protected CanvasGroup lobbyPanel;
 
     [SerializeField]
-    protected CanvasGroup CreateCharacterPanel;
+    protected CanvasGroup createCharacterPanel;
+
+    [SerializeField]
+    protected InfoPanel infoPanel;
 
     /**
      * 
      */
     [SerializeField]
-    protected CanvasGroup LobbyHeroDefaultSettingPanel;
+    protected CanvasGroup lobbyHeroDefaultSettingPanel;
 
     private CanvasGroup currentPanel;
 
@@ -70,25 +78,32 @@ public class MainUI : PersistentSingleton<MainUI>
 
     public void ShowSplashPanel()
     {
-        ShowPanel(SplashPanel);
+        ShowPanel(splashPanel);
     }
 
     public void ShowLoginPanel()
     {
-        ShowPanel(LoginPanel);
+        ShowPanel(loginPanel);
     }
 
     public void ShowCreateAccount()
     {
-        ShowPanel(CreateAccountPanel);
+        ShowPanel(createAccountPanel);
     }
+
     public void ShowLobbyHeroCreatePanel()
     {
-        ShowPanel(CreateCharacterPanel);
+        ShowPanel(createCharacterPanel);
     }
 
     public void ShowLobbyPanel()
     {
-        ShowPanel(LobbyPanel);
+        ShowPanel(lobbyPanel);
+    }
+
+    public void ShowInfoPopup(string label)
+    {
+        if (infoPanel != null)
+            infoPanel.Display(label);     
     }
 }

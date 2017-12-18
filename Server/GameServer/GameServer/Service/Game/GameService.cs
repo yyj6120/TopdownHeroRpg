@@ -16,22 +16,28 @@ namespace SJ.GameServer.Service.GameService
             GameServer.Instance.Initialize();
         }
 
-        // 클라 -> 서버 -> DB
-        // 클라 <- 서버 <- DB
         public Message.LoginResponse Login(Stream jsonRequestMessage)
         {
-            Message.LoginRequest requestMessage = 
-                (Message.LoginRequest)new DataContractJsonSerializer(typeof(Message.LoginRequest)).ReadObject(jsonRequestMessage);
-
+            Message.LoginRequest requestMessage = (Message.LoginRequest)new DataContractJsonSerializer(typeof(Message.LoginRequest)).ReadObject(jsonRequestMessage);
             Message.LoginResponse responseMessage = new Message.LoginResponse();
 
             using (var connection = ConnectionFactory.GetConnection())
             {
                 connection.Open();
 
+                try
+                {
+                    connection.Query<Account>(
+                    "select * from Account where username = @username", new { username = requestMessage.username }).Single();
+                }
+                catch (System.Exception)
+                {
+                    responseMessage.errorCode = (int)CommonErrorCode.Auth_Fail_Not_Registered_Username;
+                    return responseMessage;
+                }
+
                 var account = connection.Query<Account>(
-                    "select * from Account where username = @username", 
-                    new{ username = requestMessage.username }).Single();
+                    "select * from Account where username = @username", new{ username = requestMessage.username }).Single();
 
                 if (account.password == requestMessage.password)
                 {
@@ -71,6 +77,7 @@ namespace SJ.GameServer.Service.GameService
                     }).Single();
 
                 int gem = account.gem;
+
                 gem++;
 
                 connection.Execute("update Account set gem = @gem where username = @username",
@@ -86,6 +93,7 @@ namespace SJ.GameServer.Service.GameService
             return responseMessage;
         }
 
+
         protected Session CreateSession(long accountId, string username)
         {
             var newSession = new Session()
@@ -100,6 +108,43 @@ namespace SJ.GameServer.Service.GameService
             sessionRepository.Add(newSession.username, newSession);
 
             return newSession;
+        }
+
+        public Message.AccountCreateResponse CreateAccount(Stream jsonRequestMessage)
+        { 
+            Message.AccountCreateRequest requestMessage = (Message.AccountCreateRequest)new DataContractJsonSerializer
+                (typeof(Message.AccountCreateRequest)).ReadObject(jsonRequestMessage);
+
+            Message.AccountCreateResponse responseMessage = new Message.AccountCreateResponse();
+
+            if(requestMessage.password != requestMessage.confirm)
+            {
+                responseMessage.errorCode = (int)CommonErrorCode.Auth_Fail_Mismatch_Confirm_Password;
+                return responseMessage;
+            }
+            
+            using (var connection = ConnectionFactory.GetConnection())
+            {
+                int userCount = Enumerable.Count<Account>(connection.Query<Account>("select * from Account where username = @username",
+                    new { username = requestMessage.username }));
+
+                if(userCount > 0)
+                {
+                    responseMessage.errorCode = (int)CommonErrorCode.Auth_Add_User_Fail;
+                    return responseMessage;
+                }
+
+                connection.Open();
+                connection.Query<Account>(
+                    "insert Account(username,password) values(@username,@password)",
+                    new
+                    {
+                        username = requestMessage.username,
+                        password = requestMessage.password
+                    });             
+            }
+
+            return responseMessage;
         }
     }
 }

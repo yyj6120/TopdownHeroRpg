@@ -71,7 +71,6 @@ public class SJServiceClient<TRequest, TResponse> where TRequest : RequestBase
         else
         {
             Debug.LogError("Response Error : requestUri = " + originalRequest.Uri);
-         
             // 에러 메시지 박스 처리 
         }
     }

@@ -16,3 +16,10 @@ C:\Users\sagol\Desktop\WebServer\WebServer\Server\GameServer\Build\Binaries\Debu
 C:\Users\sagol\Desktop\WebServer\WebServer\Server\GameServer\Intermediate\SJ.GameServer.WebApp\obj\Debug\SJ.GameServer.WebApp.csprojResolveAssemblyReference.cache
 C:\Users\sagol\Desktop\WebServer\WebServer\Server\GameServer\Intermediate\SJ.GameServer.WebApp\obj\Debug\Debug-SJ.GameServer.WebApp.dll
 C:\Users\sagol\Desktop\WebServer\WebServer\Server\GameServer\Intermediate\SJ.GameServer.WebApp\obj\Debug\Debug-SJ.GameServer.WebApp.pdb
+F:\GitHub\TopdownHeroRpg\Server\GameServer\Build\Binaries\Debug-SJ.GameServer.WebApp.dll.config
+F:\GitHub\TopdownHeroRpg\Server\GameServer\Build\Binaries\Debug-SJ.GameServer.WebApp.dll
+F:\GitHub\TopdownHeroRpg\Server\GameServer\Build\Binaries\Debug-SJ.GameServer.WebApp.pdb
+F:\GitHub\TopdownHeroRpg\Server\GameServer\Intermediate\SJ.GameServer.WebApp\obj\Debug\SJ.GameServer.WebApp.csprojResolveAssemblyReference.cache
+F:\GitHub\TopdownHeroRpg\Server\GameServer\Intermediate\SJ.GameServer.WebApp\obj\Debug\SJ.GameServer.WebApp.csproj.CoreCompileInputs.cache
+F:\GitHub\TopdownHeroRpg\Server\GameServer\Intermediate\SJ.GameServer.WebApp\obj\Debug\Debug-SJ.GameServer.WebApp.dll
+F:\GitHub\TopdownHeroRpg\Server\GameServer\Intermediate\SJ.GameServer.WebApp\obj\Debug\Debug-SJ.GameServer.WebApp.pdb

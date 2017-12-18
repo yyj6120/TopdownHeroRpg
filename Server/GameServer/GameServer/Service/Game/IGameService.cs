@@ -11,5 +11,8 @@ namespace SJ.GameServer.Service.GameService
 
         [OperationContract]
         Message.GemIncreaseResponse IncreaseGem(Stream jsonRequestMessage);
+
+        [OperationContract]
+        Message.AccountCreateResponse CreateAccount(Stream jsonRequestMessage);
     }
 }
