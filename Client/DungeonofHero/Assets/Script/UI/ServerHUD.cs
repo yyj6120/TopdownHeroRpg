@@ -11,19 +11,17 @@ public class ServerHUD : MonoBehaviour {
     public Text serverInfoText, portPlaceholderText, paswPlaceholderText, clientsInfoText;
     public InputField portText, passwordText, maxConnText;
 
-    private NetworkManager manager;
+    private NetworkManagerDH manager;
     private bool noConnection, setText, checkIP;
     private string externalip="?", localIP="?";
     private int maximumConnections;
 
-    // Use this for initialization
     void Start ()
     {
         Debug.Log("ServerHUD , Start");
         if (!manager)
-            manager = GetComponent<NetworkManager>();
-        
-        //Checking if we have saved Server Infomation and filling the text fields.
+            manager = NetworkManagerDH.Instance;
+
         if (PlayerPrefs.HasKey("nwPortS"))
         {
             manager.networkPort = Convert.ToInt32(PlayerPrefs.GetString("nwPortS"));
@@ -49,14 +47,12 @@ public class ServerHUD : MonoBehaviour {
         clientsInfoText = clientsInfo.GetComponentInChildren<Text>();
         setText = true;       
     } 
-	
-	// Update is called once per frame
+
 	void Update () {
         
         noConnection = (manager.client == null || manager.client.connection == null ||
                      manager.client.connection.connectionId == -1);
 
-        //Showing and hiding the appropriate buttons and text depending on if the server is running or not.
         if (!manager.IsClientConnected() && !NetworkServer.active && manager.matchMaker == null)
         {
             if (noConnection)
@@ -93,7 +89,6 @@ public class ServerHUD : MonoBehaviour {
         }
     }
 
-    //shutdown the server.
     public void StopHostCustom()
     {
         Debug.Log("StopHostCustom");
@@ -108,14 +103,14 @@ public class ServerHUD : MonoBehaviour {
     public void StartServerCustom()
     {
         Debug.Log("StartServerCustom");
-        //setting the network managers port to use.
-        if (portText.text == "")//did we not set a port number ?
+
+        if (portText.text == "")
         {
-            if (PlayerPrefs.HasKey("nwPortS"))//did we have a previous one saved.
+            if (PlayerPrefs.HasKey("nwPortS"))
             {
                 manager.networkPort = Convert.ToInt32(PlayerPrefs.GetString("nwPortS"));
             }
-            else//if not, use the default port.
+            else
             {
                 manager.networkPort = 7777;
                 portPlaceholderText.text = manager.networkPort.ToString()+"(Default)";
@@ -123,14 +118,14 @@ public class ServerHUD : MonoBehaviour {
         }
         else
         {
-            PlayerPrefs.SetString("nwPortS", portText.text);//save the port we are using.         
+            PlayerPrefs.SetString("nwPortS", portText.text);      
             manager.networkPort = Convert.ToInt32(portText.text);
             portPlaceholderText.text = manager.networkPort.ToString();
         }
 
-        PlayerPrefs.SetString("Password", passwordText.text);//save the servers pasword.  
+        PlayerPrefs.SetString("Password", passwordText.text);
         PlayerPrefs.SetString("MaxConnections", maxConnText.text.ToString());
-        //Showing and hiding the appropriate buttons and text.  
+        
         resetSettings.SetActive(false);
         portText.transform.parent.gameObject.SetActive(false);
         getIP.SetActive(false);
@@ -147,18 +142,11 @@ public class ServerHUD : MonoBehaviour {
         manager.maxConnections = maximumConnections;
 
         manager.StartServer();
-
-        //var config = new ConnectionConfig();
-        //config.AddChannel(QosType.Reliable);
-        //config.AddChannel(QosType.Unreliable);
-
-        //manager.StartServer(config, maximumConnections);
     }
 
     public void ResetToDefault()
     {
         Debug.Log("ResetToDefault");
-        //deleting all saved info and resetting to use the default ones.
         PlayerPrefs.DeleteKey("IPAddressS");
         getIP.GetComponentInChildren<Text>().text = "Find Server IP Address.";
         externalip = "?";
@@ -174,36 +162,32 @@ public class ServerHUD : MonoBehaviour {
         maxConnText.text = "";
     }
 
-    //Finding the servers ip addresses.
     public void GetIP()
     {
         Debug.Log("GetIP");
         getIP.GetComponentInChildren<Text>().text = "If this takes too long\nClick again.";
-        StartCoroutine(GetPublicIP());//start the actual checkking.
+        StartCoroutine(GetPublicIP());
         checking.SetActive(true);
     }
 
     IEnumerator GetPublicIP()
     {
         Debug.Log("GetPublicIP");
-        WWW www = new WWW("http://checkip.dyndns.org");//the website to use to find your external ip, use any "find my ip" site you want.
-        yield return www;//wait till we get a response.
+        WWW www = new WWW("http://checkip.dyndns.org");
+        yield return www;
         if (www.error==null)
         {
-            //filter the response message for the ip address.
             string response = www.text;
             string[] a = response.Split(':');
             string a2 = a[1].Substring(1);
             string[] a3 = a2.Split('<');
             string a4 = a3[0];
-            externalip = a4;//TADAA..!!   your external ip addres :)
+            externalip = a4;
 
-            //getting the ip from the pc the server is running on. (a local Lan address) 
-            //onely used to connect from inside your house/network.
             localIP = Network.player.ipAddress;
 
             getIP.GetComponentInChildren<Text>().text = "Server IP Address\nExternal :" + externalip+"\nLocal :"+localIP;
-            //saving the ip addresses.
+
             PlayerPrefs.SetString("IPAddressS", externalip);
             PlayerPrefs.SetString("LocalIP", localIP);
             checking.SetActive(false);

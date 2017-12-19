@@ -70,9 +70,11 @@ public class LoginMenu : MonoBehaviour
     {
         Debug.Log("StartServer");
         serverHUDScript.enabled = true;
-        serverCanvas.SetActive(true);
+
         SceneManager.LoadScene("LobbyScene");
-        
+
+        MainUI.s_Instance.ShowLobbyPanel();
+        serverCanvas.SetActive(true);
     }
 
     public void StartClient()
@@ -81,6 +83,7 @@ public class LoginMenu : MonoBehaviour
         clientHudScript.enabled = true;
         clientCanvas.SetActive(true);
         SceneManager.LoadScene("LobbyScene");
+        MainUI.s_Instance.ShowLobbyPanel();
     }
 
     public void OnBackClicked()

@@ -5,6 +5,35 @@ using UnityEngine.UI;
 
 public class NetworkManagerDH : NetworkManager
 {
+
+    #region Singleton
+
+    public static NetworkManagerDH Instance
+    {
+        get;
+        protected set;
+    }
+
+    public static bool InstanceExists
+    {
+        get { return Instance != null; }
+    }
+
+    private void Awake()
+    {
+        Instance = this;
+        DontDestroyOnLoad(gameObject);
+    }
+
+    protected virtual void OnDestroy()
+    {
+        if (Instance == this)
+        {
+            Instance = null;
+        }
+    }
+    #endregion
+
     public Text clientsInfoText;
     public ClientHUD clientHudScript;
     public ServerHUD serverHudScript;
@@ -13,9 +42,9 @@ public class NetworkManagerDH : NetworkManager
 
     [HideInInspector]
     public string serverPassword;
-    //Server Side
 
     public GameObject players;
+
     public override void OnStartServer()
     {
         Debug.Log("OnStartServer");
@@ -27,7 +56,6 @@ public class NetworkManagerDH : NetworkManager
         clientsInfoText.text = "Connected Clients : " + connectedClients;
     }
 
-    //keeping track of Clients connecting.
     public override void OnServerConnect(NetworkConnection conn)
     {
         Debug.Log("OnServerConnect");
@@ -35,12 +63,10 @@ public class NetworkManagerDH : NetworkManager
         connectedClients += 1;
         clientsInfoText.text = "Connected Clients : " + connectedClients;
 
-        //Sending password information to client.
         StringMessage msg = new StringMessage(serverPassword);
         NetworkServer.SendToClient(conn.connectionId, MsgType.Highest + 1, msg);
     }
 
-    //keeping track of Clients disconnecting.
     public override void OnServerDisconnect(NetworkConnection conn)
     {
         Debug.Log("OnServerDisconnect");
@@ -55,7 +81,6 @@ public class NetworkManagerDH : NetworkManager
         base.OnStopServer();
     }
 
-    //Client Side
     public override void OnStartClient(NetworkClient client)
     {
         Debug.Log("OnStartClient");
@@ -69,13 +94,13 @@ public class NetworkManagerDH : NetworkManager
         base.OnClientConnect(conn);
         clientHudScript.ConnectSuccses();
     }
-    //when client recieves password information from the server.
+
     public void OnReceivePassword(NetworkMessage netMsg)
     {
         Debug.Log("OnReceivePassword");
-        //read the server password.
+
         var msg = netMsg.ReadMessage<StringMessage>().value;
-        //serverPassword = msg;
+
         if (msg != clientHudScript.passwordText.text)
             clientHudScript.DisConnect(true);
     }
@@ -87,7 +112,6 @@ public class NetworkManagerDH : NetworkManager
         clientHudScript.DisConnect(false);
     }
 
-    //Messages that need to be Registered on Server and Client Startup.
     void RegisterServerHandles()
     {
         Debug.Log("RegisterServerHandles");

@@ -20,7 +20,7 @@ public class ClientHUD : MonoBehaviour
     {
         Debug.Log("ClientHUD, Start");
         if (!manager)
-            manager = GetComponent<NetworkManager>();
+            manager = NetworkManagerDH.Instance;
 
         //checking if we have saved server info.
         if (PlayerPrefs.HasKey("nwPortC"))

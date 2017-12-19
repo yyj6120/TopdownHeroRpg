@@ -22,6 +22,8 @@ public class MainUI : PersistentSingleton<MainUI>
     #region Static config
     public static MenuPage returnPage;
     #endregion
+
+
     /**
      * 
      */
