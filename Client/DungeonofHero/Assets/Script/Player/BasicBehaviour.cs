@@ -1,9 +1,18 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 using UnityEngine.Networking;
-
+/// <summary>
+/// 케릭터 행동처리 , ex) 움직임 , 점프 ..
+/// </summary>
 public class BasicBehaviour : MonoBehaviour
 {
+
+    public DHStateMachine<CharacterStates.MovementStates> movementState;
+    public DHStateMachine<CharacterStates.CharacterConditions> conditionState;
+    
+    public bool SendStateChangeEvents = true;
+    public bool SendStateUpdateEvents = true;
+
     public float turnSmoothing = 0.06f;
     private Vector3 lastDirection;
     private Animator anim;
@@ -26,6 +35,8 @@ public class BasicBehaviour : MonoBehaviour
 
     protected virtual void Initialization()
     {
+        movementState = new DHStateMachine<CharacterStates.MovementStates>(gameObject, SendStateChangeEvents);
+        conditionState = new DHStateMachine<CharacterStates.CharacterConditions>(gameObject, SendStateChangeEvents);
         overridingBehaviours = GetComponents<GenericBehaviour>();
         mainCamera = Camera.main.GetComponent<CameraMMO>();
         anim = GetComponent<Animator>();
@@ -43,7 +54,7 @@ public class BasicBehaviour : MonoBehaviour
     void Update()
     {
         EveryFrame();
-        anim.SetBool(groundedBool, IsGrounded());
+      //  anim.SetBool(groundedBool, IsGrounded());
     }
 
     protected virtual void FixedUpdate() { FixedProcessAbilities(); }
@@ -146,7 +157,7 @@ public class BasicBehaviour : MonoBehaviour
     }
 }
 
-public abstract class GenericBehaviour : NetworkBehaviour
+public abstract class GenericBehaviour : MonoBehaviour
 {
     protected int speedFloat;
     protected BasicBehaviour behaviourManager;
@@ -154,6 +165,10 @@ public abstract class GenericBehaviour : NetworkBehaviour
     protected Animator animator;
     protected Rigidbody _rigidbody;
     protected CameraMMO mainCamara;
+
+    protected DHStateMachine<CharacterStates.MovementStates> movement;
+    protected DHStateMachine<CharacterStates.CharacterConditions> condition;
+    protected DHPhysicsController _controller;
 
     protected int hFloat;
     protected int vFloat;
@@ -169,15 +184,13 @@ public abstract class GenericBehaviour : NetworkBehaviour
         Initialization();
     }
 
-    [Client]
-    public override void OnStartClient()
-    {
-        
-    }
-
     protected virtual void Initialization()
     {
         behaviourManager = GetComponent<BasicBehaviour>();
+        _controller = GetComponent<DHPhysicsController>();
+
+        movement = behaviourManager.movementState;
+        condition = behaviourManager.conditionState;
         speedFloat = Animator.StringToHash("Speed");
         animator = behaviourManager.GetAnim;
         mainCamara = behaviourManager.Getcamera;
@@ -186,6 +199,7 @@ public abstract class GenericBehaviour : NetworkBehaviour
         _rigidbody = behaviourManager.GetRigidBody;
         behaviourInitialized = true;
     }
+
 
     public virtual void EarlyProcessAbility() { InternalHandleInput(); }
 

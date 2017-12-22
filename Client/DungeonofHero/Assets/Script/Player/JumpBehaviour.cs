@@ -31,6 +31,7 @@ public class JumpBehaviour : GenericBehaviour
     {
         if (jump && !behaviourManager.GetAnim.GetBool(jumpBool) && behaviourManager.IsGrounded())
         {
+            movement.ChangeState(CharacterStates.MovementStates.Jumping);
             behaviourManager.GetAnim.SetBool(jumpBool, true);
             if (behaviourManager.GetAnim.GetFloat(speedFloat) > 0.1)
             {

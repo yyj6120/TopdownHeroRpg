@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.Networking;
 
 public class MoveBehaviour : GenericBehaviour
 {
@@ -29,33 +30,47 @@ public class MoveBehaviour : GenericBehaviour
         }
     }
 
-    
     public override void ProcessAbility()
     {
-        base.ProcessAbility();
-        MovementManagement();
-        Rotating();
+            base.ProcessAbility();
+            MovementManagement();
+            Rotating();
     }
 
-	void MovementManagement()
+    void MovementManagement()
 	{	
 		if (behaviourManager.IsGrounded())
-			_rigidbody.useGravity = true;
+        {
+            _rigidbody.useGravity = true;
+            movement.ChangeState(CharacterStates.MovementStates.Idle);
+        }
 
 		Vector2 dir = new Vector2(horizontalInput, verticalInput);
 		speed = Vector2.ClampMagnitude(dir, 1f).magnitude;
-	
-		speedSeeker += Input.GetAxis("Mouse ScrollWheel");
-		speedSeeker = Mathf.Clamp(speedSeeker, walkSpeed, runSpeed);
-		speed *= speedSeeker;
+	    
+        if(speed != 0 
+            && behaviourManager.IsGrounded() 
+            && movement.CurrentState == CharacterStates.MovementStates.Idle)
+        {
+            movement.ChangeState(CharacterStates.MovementStates.Running);
+        }
 
+        if (speed == 0 
+            && behaviourManager.IsGrounded() 
+            && movement.CurrentState == CharacterStates.MovementStates.Running)
+        {
+            movement.ChangeState(CharacterStates.MovementStates.Idle);
+        }
+          
         if (canSprint)
         {
             speed = sprintSpeed;
         }
+
+        _controller.ControlSpeed(speed);
     }
 
-	Vector3 Rotating()
+    Vector3 Rotating()
 	{
 		Vector3 forward = mainCamara.transform.TransformDirection(Vector3.forward);
 
@@ -84,8 +99,8 @@ public class MoveBehaviour : GenericBehaviour
 
     public override void UpdateAnimator()
     {
-        animator.SetFloat(hFloat, horizontalInput, 0.1f, Time.deltaTime);
-        animator.SetFloat(vFloat, verticalInput, 0.1f, Time.deltaTime);
-        animator.SetFloat(speedFloat, speed, speedDampTime, Time.deltaTime);
+     //   animator.SetFloat(hFloat, horizontalInput, 0.1f, Time.deltaTime);
+     //   animator.SetFloat(vFloat, verticalInput, 0.1f, Time.deltaTime);
+   //     animator.SetFloat(speedFloat, speed, speedDampTime, Time.deltaTime);
     }
 }
