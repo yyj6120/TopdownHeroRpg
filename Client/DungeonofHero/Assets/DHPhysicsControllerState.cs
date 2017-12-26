@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 
-public class DHPhysicsControllerState : MonoBehaviour
+public class DHPhysicsControllerState
 {
-
+    public bool isGrounded;
+    public bool isJumping;
 }

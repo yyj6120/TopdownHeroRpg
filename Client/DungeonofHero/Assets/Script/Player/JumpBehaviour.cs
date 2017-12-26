@@ -2,76 +2,86 @@
 
 public class JumpBehaviour : GenericBehaviour
 {
-    private bool jump;
-    private int jumpBool;
     public float jumpHeight = 1.5f;
-    private bool isColliding;
-    public float jumpIntertialForce = 10f;
-    private int groundedBool;
-    private float accelerationSpeed = 2.0f;
+    //private bool isColliding;
+    //public float jumpIntertialForce = 10f;
+    //private float accelerationSpeed = 2.0f;
+
+    public float jumpTimer = 0.3f;
     protected override void Initialization()
     {
         base.Initialization();
-        jumpBool = Animator.StringToHash("Jump");
-        groundedBool = Animator.StringToHash("Grounded");
-        behaviourManager.GetAnim.SetBool(groundedBool, true);
     }
 
     protected override void HandleInput()
     {
-        if (jump == false && inputmanager.JumpButton.State.CurrentState == DHInput.ButtonStates.ButtonDown)
+        if (_controller.State.isJumping == false && inputmanager.JumpButton.State.CurrentState == DHInput.ButtonStates.ButtonDown)
         {
-            jump = true;
+            JumpStart();
         }
     }
+    //void JumpManagement()
+    //{
+    //    if (jump && !behaviourManager.GetAnimator.GetBool(jumpBool) && _controller.State.isGrounded)
+    //    {
+    //        movement.ChangeState(CharacterStates.MovementStates.Jumping);
+    //        behaviourManager.GetAnimator.SetBool(jumpBool, true);
+    //        if (behaviourManager.GetAnimator.GetFloat(speedFloat) > 0.1)
+    //        {
+    //            GetComponent<CapsuleCollider>().material.dynamicFriction = 0f;
+    //            GetComponent<CapsuleCollider>().material.staticFriction = 0f;
+    //            float velocity = 2f * Mathf.Abs(Physics.gravity.y) * jumpHeight;
+    //            velocity = Mathf.Sqrt(velocity);
+    //            _rigidbody.AddForce(Vector3.up * velocity, ForceMode.VelocityChange);
+    //        }
+    //    }
+    //    else if (behaviourManager.GetAnimator.GetBool(jumpBool))
+    //    {
+    //        if (!_controller.State.isGrounded && !isColliding)
+    //        {
+    //            behaviourManager.GetRigidBody.AddForce(transform.forward * jumpIntertialForce * Physics.gravity.magnitude * accelerationSpeed, ForceMode.Acceleration);
+    //        }
 
-    public override void LocalFixedUpdate() { JumpManagement(); }
+    //        if ((behaviourManager.GetRigidBody.velocity.y < 0) && _controller.State.isGrounded)
+    //        {
+    //            behaviourManager.GetAnimator.SetBool(groundedBool, true);
+    //            GetComponent<CapsuleCollider>().material.dynamicFriction = 0.6f;
+    //            GetComponent<CapsuleCollider>().material.staticFriction = 0.6f;
+    //            jump = false;
+    //            behaviourManager.GetAnimator.SetBool(jumpBool, false);
+    //        }
+    //    }
+    //}
 
-    void JumpManagement()
+    void JumpStart()
     {
-        if (jump && !behaviourManager.GetAnim.GetBool(jumpBool) && behaviourManager.IsGrounded())
-        {
-            movement.ChangeState(CharacterStates.MovementStates.Jumping);
-            behaviourManager.GetAnim.SetBool(jumpBool, true);
-            if (behaviourManager.GetAnim.GetFloat(speedFloat) > 0.1)
-            {
-                GetComponent<CapsuleCollider>().material.dynamicFriction = 0f;
-                GetComponent<CapsuleCollider>().material.staticFriction = 0f;
-                float velocity = 2f * Mathf.Abs(Physics.gravity.y) * jumpHeight;
-                velocity = Mathf.Sqrt(velocity);
-                _rigidbody.AddForce(Vector3.up * velocity, ForceMode.VelocityChange);
-            }
-        }
-        else if (behaviourManager.GetAnim.GetBool(jumpBool))
-        {
-            if (!behaviourManager.IsGrounded() && !isColliding)
-            {
-                behaviourManager.GetRigidBody.AddForce(transform.forward * jumpIntertialForce * Physics.gravity.magnitude * accelerationSpeed, ForceMode.Acceleration);
-            }
+        if (!EvaluateJumpConditions())
+            return;
 
-            if ((behaviourManager.GetRigidBody.velocity.y < 0) && behaviourManager.IsGrounded())
-            {
-                behaviourManager.GetAnim.SetBool(groundedBool, true);
-                GetComponent<CapsuleCollider>().material.dynamicFriction = 0.6f;
-                GetComponent<CapsuleCollider>().material.staticFriction = 0.6f;
-                jump = false;
-                behaviourManager.GetAnim.SetBool(jumpBool, false);
-            }
-        }
+        movement.ChangeState(CharacterStates.MovementStates.Jumping);
+        condition.ChangeState(CharacterStates.CharacterConditions.Normal);
+        //    _controller.GravityActive(true);
+        _controller.SetVerticalForce();
+    }
+
+    protected virtual bool EvaluateJumpConditions()
+    {
+        if (_controller.State.isJumping || condition.CurrentState != CharacterStates.CharacterConditions.Normal)
+            return false;
+
+        return true;
+    }
+
+    protected override void InitializeAnimatorParameters()
+    {
+        RegisterAnimatorParameter("Jumping", AnimatorControllerParameterType.Bool);
+    //    RegisterAnimatorParameter("HitTheGround", AnimatorControllerParameterType.Bool);
     }
 
     public override void UpdateAnimator()
     {
-    
+        DHAnimator.UpdateAnimatorBool(_animator, "Jumping", (movement.CurrentState == CharacterStates.MovementStates.Jumping), behaviourManager._animatorParameters);
+     //   DHAnimator.UpdateAnimatorBool(_animator, "HitTheGround", _controller.State.isGrounded, behaviourManager._animatorParameters);
     }
 
-    private void OnCollisionStay(Collision collision)
-    {
-        isColliding = true;
-    }
-
-    private void OnCollisionExit(Collision collision)
-    {
-        isColliding = false;
-    }
 }

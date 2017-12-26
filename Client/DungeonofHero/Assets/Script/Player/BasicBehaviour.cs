@@ -9,21 +9,22 @@ public class BasicBehaviour : MonoBehaviour
 
     public DHStateMachine<CharacterStates.MovementStates> movementState;
     public DHStateMachine<CharacterStates.CharacterConditions> conditionState;
-    
+
+    protected DHPhysicsController _controller;
+    public List<string> _animatorParameters { get; set; }
+
     public bool SendStateChangeEvents = true;
     public bool SendStateUpdateEvents = true;
 
     public float turnSmoothing = 0.06f;
     private Vector3 lastDirection;
-    private Animator anim;
+    private Animator animator;
     private GenericBehaviour[] overridingBehaviours;
     private Rigidbody rBody;
-    private int groundedBool;
-    private Vector3 colExtents;
 
     public Rigidbody GetRigidBody { get { return rBody; } }
 
-    public Animator GetAnim { get { return anim; } }
+    public Animator GetAnimator { get { return animator; } }
 
     private CameraMMO mainCamera;
 
@@ -35,29 +36,38 @@ public class BasicBehaviour : MonoBehaviour
 
     protected virtual void Initialization()
     {
+        _controller = GetComponent<DHPhysicsController>();
         movementState = new DHStateMachine<CharacterStates.MovementStates>(gameObject, SendStateChangeEvents);
         conditionState = new DHStateMachine<CharacterStates.CharacterConditions>(gameObject, SendStateChangeEvents);
         overridingBehaviours = GetComponents<GenericBehaviour>();
         mainCamera = Camera.main.GetComponent<CameraMMO>();
-        anim = GetComponent<Animator>();
+        animator = GetComponent<Animator>();
         rBody = GetComponent<Rigidbody>();
         GetInputManager();
-        groundedBool = Animator.StringToHash("Grounded");
-        colExtents = GetComponent<Collider>().bounds.extents;
+
+        if (animator != null)
+        {
+            InitializeAnimatorParameters();
+        }
     }
 
     protected virtual void InitializeAnimatorParameters()
     {
+        if (animator == null) { return; }
+        _animatorParameters = new List<string>();
 
+        DHAnimator.AddAnimatorParamaterIfExists(animator, "Grounded", AnimatorControllerParameterType.Bool, _animatorParameters);
     }
 
     void Update()
     {
         EveryFrame();
-      //  anim.SetBool(groundedBool, IsGrounded());
     }
 
-    protected virtual void FixedUpdate() { FixedProcessAbilities(); }
+    protected virtual void FixedUpdate()
+    {
+        FixedProcessAbilities();
+    }
 
     protected virtual void EveryFrame()
     {
@@ -114,8 +124,10 @@ public class BasicBehaviour : MonoBehaviour
 
     protected virtual void UpdateAnimators()
     {
-        if (anim != null)
+        if (animator != null)
         {
+            DHAnimator.UpdateAnimatorBool(animator, "Grounded", _controller.State.isGrounded, _animatorParameters);
+
             foreach (GenericBehaviour behaviour in overridingBehaviours)
             {
                 if (behaviour.enabled && behaviour.behaviourInitialized)
@@ -126,17 +138,20 @@ public class BasicBehaviour : MonoBehaviour
         }
     }
 
-    protected virtual void GetInputManager() { LinkedInputManager = 
-            FindObjectOfType(typeof(InputManager)) as InputManager; }
+    protected virtual void GetInputManager()
+    {
+        LinkedInputManager = FindObjectOfType(typeof(InputManager)) as InputManager;
+    }
 
-    public bool IsHorizontalMoving() { return LinkedInputManager.PrimaryMovement.x != 0; }
+    public Vector3 GetLastDirection()
+    {
+        return lastDirection;
+    }
 
-    public bool IsMoving() { return (LinkedInputManager.PrimaryMovement.x != 0) ||
-            (LinkedInputManager.PrimaryMovement.y != 0); }
-
-    public Vector3 GetLastDirection() { return lastDirection; }
-
-    public void SetLastDirection(Vector3 direction) { lastDirection = direction; }
+    public void SetLastDirection(Vector3 direction)
+    {
+        lastDirection = direction;
+    }
 
     public void Repositioning()
     {
@@ -149,12 +164,6 @@ public class BasicBehaviour : MonoBehaviour
             rBody.MoveRotation(newRotation);
         }
     }
-
-    public bool IsGrounded()
-    {
-        Ray ray = new Ray(this.transform.position + Vector3.up * 2 * colExtents.x, Vector3.down);
-        return Physics.SphereCast(ray, colExtents.x, colExtents.x + 0.2f);
-    }
 }
 
 public abstract class GenericBehaviour : MonoBehaviour
@@ -162,22 +171,19 @@ public abstract class GenericBehaviour : MonoBehaviour
     protected int speedFloat;
     protected BasicBehaviour behaviourManager;
     protected InputManager inputmanager;
-    protected Animator animator;
+    protected Animator _animator;
     protected Rigidbody _rigidbody;
     protected CameraMMO mainCamara;
 
     protected DHStateMachine<CharacterStates.MovementStates> movement;
     protected DHStateMachine<CharacterStates.CharacterConditions> condition;
     protected DHPhysicsController _controller;
-
-    protected int hFloat;
-    protected int vFloat;
     public bool behaviourInitialized = false;
 
     protected float verticalInput;
     protected float horizontalInput;
 
-    protected float speed, speedSeeker;
+    protected float speed;
 
     protected void Start()
     {
@@ -192,12 +198,17 @@ public abstract class GenericBehaviour : MonoBehaviour
         movement = behaviourManager.movementState;
         condition = behaviourManager.conditionState;
         speedFloat = Animator.StringToHash("Speed");
-        animator = behaviourManager.GetAnim;
+        _animator = behaviourManager.GetAnimator;
         mainCamara = behaviourManager.Getcamera;
         mainCamara.target = transform;
         inputmanager = behaviourManager.LinkedInputManager;
         _rigidbody = behaviourManager.GetRigidBody;
         behaviourInitialized = true;
+
+        if (_animator != null)
+        {
+            InitializeAnimatorParameters();
+        }
     }
 
 
@@ -224,4 +235,22 @@ public abstract class GenericBehaviour : MonoBehaviour
     }
 
     protected virtual void HandleInput() { }
+
+    protected virtual void InitializeAnimatorParameters()
+    {
+
+    }
+
+    protected virtual void RegisterAnimatorParameter(string parameterName, AnimatorControllerParameterType parameterType)
+    {
+        if (_animator == null)
+        {
+            return;
+        }
+
+        if (_animator.HasParameterOfType(parameterName, parameterType))
+        {
+            behaviourManager._animatorParameters.Add(parameterName);
+        }
+    }
 }
