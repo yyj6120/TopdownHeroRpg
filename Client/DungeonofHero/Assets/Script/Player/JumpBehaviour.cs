@@ -2,17 +2,10 @@
 
 public class JumpBehaviour : GenericBehaviour
 {
-    public float jumpHeight = 1.5f;
-    //private bool isColliding;
-    //public float jumpIntertialForce = 10f;
-    //private float accelerationSpeed = 2.0f;
-
-    public float jumpTimer = 0.3f;
     protected override void Initialization()
     {
         base.Initialization();
     }
-
     protected override void HandleInput()
     {
         if (_controller.State.isJumping == false && inputmanager.JumpButton.State.CurrentState == DHInput.ButtonStates.ButtonDown)
@@ -52,7 +45,6 @@ public class JumpBehaviour : GenericBehaviour
     //        }
     //    }
     //}
-
     void JumpStart()
     {
         if (!EvaluateJumpConditions())
@@ -61,7 +53,7 @@ public class JumpBehaviour : GenericBehaviour
         movement.ChangeState(CharacterStates.MovementStates.Jumping);
         condition.ChangeState(CharacterStates.CharacterConditions.Normal);
         //    _controller.GravityActive(true);
-        _controller.SetVerticalForce();
+      //  _controller.SetVerticalForce();
     }
 
     protected virtual bool EvaluateJumpConditions()

@@ -98,10 +98,12 @@ public class DHPhysicsController : MonoBehaviour
     {
         CheckGroundDistance();
         CheckGround();
+        ControlJumpBehaviour();
     }
 
     protected void LocalFixedUpdate()
     {
+        AirControl();
         StepOffset();
         Rotating();
     }
@@ -123,7 +125,7 @@ public class DHPhysicsController : MonoBehaviour
     {
         if (input.PrimaryMovement.sqrMagnitude < 0.1 || !State.isGrounded)
             return false;
-        
+
         var _hit = new RaycastHit();
         var _movementDirection = transform.forward;
         Ray rayStep = new Ray((transform.position + new Vector3(0, stepOffsetEnd, 0) + _movementDirection * ((_capsuleCollider).radius + 0.05f)), Vector3.down);
@@ -134,7 +136,7 @@ public class DHPhysicsController : MonoBehaviour
             {
                 var _speed = Mathf.Abs(_externalForce.x) + Mathf.Abs(_externalForce.y);
                 var velocityDirection = (_hit.point - transform.position).normalized;
-                _rigidbody.velocity = velocityDirection * stepSmooth * _speed;              
+                _rigidbody.velocity = velocityDirection * stepSmooth * _speed;
                 return true;
             }
         }
@@ -255,20 +257,59 @@ public class DHPhysicsController : MonoBehaviour
         _externalForce = force;
     }
 
-    public void SetVerticalForce()
+    public float jumpCounter;
+    public float jumpHeight = 4f;
+    public float jumpForward = 3f;
+
+    public void ControlJumpBehaviour()
     {
-        if (!isJumping) return;
+        if (behaviourManager.movementState.CurrentState != CharacterStates.MovementStates.Jumping)
+            return;
 
         jumpCounter -= Time.deltaTime;
         if (jumpCounter <= 0)
         {
             jumpCounter = 0;
-            isJumping = false;
+            behaviourManager.movementState.ChangeState(CharacterStates.MovementStates.Idle);
         }
-        // apply extra force to the jump height   
+
         var vel = _rigidbody.velocity;
         vel.y = jumpHeight;
-        Debug.Log(vel.y);
         _rigidbody.velocity = vel;
+    }
+
+    public void AirControl()
+    {
+        //if (State.isGrounded)
+        //    return;
+        ////if (!jumpFwdCondition)
+        ////    return;
+        //var speed = Mathf.Abs(_externalForce.x) + Mathf.Abs(_externalForce.y);
+        //var velY = transform.forward * jumpForward * speed;
+        //velY.y = _rigidbody.velocity.y;
+        //var velX = transform.right * jumpForward * direction;
+        //velX.x = _rigidbody.velocity.x;
+
+        //EnableGravityAndCollision(0f);
+
+        //if (jumpAirControl)
+        //{
+        //    if (isStrafing)
+        //    {
+        //        _rigidbody.velocity = new Vector3(velX.x, velY.y, _rigidbody.velocity.z);
+        //        var vel = transform.forward * (jumpForward * speed) + transform.right * (jumpForward * direction);
+        //        _rigidbody.velocity = new Vector3(vel.x, _rigidbody.velocity.y, vel.z);
+        //    }
+        //    else
+        //    {
+        //        var vel = transform.forward * (jumpForward * speed);
+        //        _rigidbody.velocity = new Vector3(vel.x, _rigidbody.velocity.y, vel.z);
+        //    }
+        //}
+        //else
+        //{
+        //    var vel = transform.forward * (jumpForward);
+        //    _rigidbody.velocity = new Vector3(vel.x, _rigidbody.velocity.y, vel.z);
+        //}
     }
 }
