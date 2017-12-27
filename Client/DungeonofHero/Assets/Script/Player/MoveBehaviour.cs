@@ -31,8 +31,8 @@ public class MoveBehaviour : GenericBehaviour
     }
 
     void MovementManagement()
-	{	
-		if (_controller.State.isGrounded)
+	{
+        if (_controller.State.JustGotGrounded)
         {
             _rigidbody.useGravity = true;
             movement.ChangeState(CharacterStates.MovementStates.Idle);
@@ -56,7 +56,16 @@ public class MoveBehaviour : GenericBehaviour
         {
             movement.ChangeState(CharacterStates.MovementStates.Idle);
         }
-          
+
+        if (!_controller.State.isGrounded
+                && (
+                    (movement.CurrentState == CharacterStates.MovementStates.Running)
+                     || (movement.CurrentState == CharacterStates.MovementStates.Idle)
+                    ))
+        {
+            movement.ChangeState(CharacterStates.MovementStates.Falling);
+        }
+
         if (canSprint)
         {
             speed = sprintSpeed;
@@ -66,10 +75,12 @@ public class MoveBehaviour : GenericBehaviour
     protected override void InitializeAnimatorParameters()
     {
         RegisterAnimatorParameter("Speed", AnimatorControllerParameterType.Float);
+        RegisterAnimatorParameter("Movement", AnimatorControllerParameterType.Bool);
     }
 
     public override void UpdateAnimator()
     {
         DHAnimator.UpdateAnimatorFloat(_animator, "Speed", speed);
+        DHAnimator.UpdateAnimatorBool(_animator, "Movement", movement.CurrentState == CharacterStates.MovementStates.Running);
     }
 }

@@ -56,7 +56,11 @@ public class BasicBehaviour : MonoBehaviour
         if (animator == null) { return; }
         _animatorParameters = new List<string>();
 
+        DHAnimator.AddAnimatorParamaterIfExists(animator, "Idle", AnimatorControllerParameterType.Bool, _animatorParameters);
         DHAnimator.AddAnimatorParamaterIfExists(animator, "Grounded", AnimatorControllerParameterType.Bool, _animatorParameters);
+        DHAnimator.AddAnimatorParamaterIfExists(animator, "VerticalVelocity", AnimatorControllerParameterType.Float, _animatorParameters);
+        DHAnimator.AddAnimatorParamaterIfExists(animator, "GroundDistance", AnimatorControllerParameterType.Float, _animatorParameters);
+     
     }
 
     void Update()
@@ -127,7 +131,9 @@ public class BasicBehaviour : MonoBehaviour
         if (animator != null)
         {
             DHAnimator.UpdateAnimatorBool(animator, "Grounded", _controller.State.isGrounded, _animatorParameters);
-
+            DHAnimator.UpdateAnimatorFloat(animator, "VerticalVelocity", _controller.verticalVelocity, _animatorParameters);
+            DHAnimator.UpdateAnimatorFloat(animator, "GroundDistance", _controller.groundDistance, _animatorParameters);
+            DHAnimator.UpdateAnimatorBool(animator, "Idle", (movementState.CurrentState == CharacterStates.MovementStates.Idle), _animatorParameters);
             foreach (GenericBehaviour behaviour in overridingBehaviours)
             {
                 if (behaviour.enabled && behaviour.behaviourInitialized)
@@ -173,7 +179,6 @@ public abstract class GenericBehaviour : MonoBehaviour
     protected InputManager inputmanager;
     protected Animator _animator;
     protected Rigidbody _rigidbody;
-    protected CameraMMO mainCamara;
 
     protected DHStateMachine<CharacterStates.MovementStates> movement;
     protected DHStateMachine<CharacterStates.CharacterConditions> condition;
@@ -199,8 +204,6 @@ public abstract class GenericBehaviour : MonoBehaviour
         condition = behaviourManager.conditionState;
         speedFloat = Animator.StringToHash("Speed");
         _animator = behaviourManager.GetAnimator;
-        mainCamara = behaviourManager.Getcamera;
-        mainCamara.target = transform;
         inputmanager = behaviourManager.LinkedInputManager;
         _rigidbody = behaviourManager.GetRigidBody;
         behaviourInitialized = true;
