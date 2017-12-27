@@ -74,6 +74,11 @@ public static class DHAnimator
         animator.SetFloat(parameterName, value);
     }
 
+    public static void UpdateAnimatorFloat(Animator animator, string parameterName, float value , float damptime)
+    {
+        animator.SetFloat(parameterName, value , damptime , Time.deltaTime);
+    }
+
     public static void UpdateAnimatorInteger(Animator animator, string parameterName, int value)
     {
         animator.SetInteger(parameterName, value);

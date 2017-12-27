@@ -26,7 +26,7 @@ public class DHPhysicsController : MonoBehaviour
     float stepOffsetStart = 0.05f;
     protected CapsuleCollider _capsuleCollider;
     public LayerMask groundLayer = 1 << 0;
-    public float stepSmooth = 2f;
+    public float stepSmooth = 4f;
 
     bool isDead;
 
@@ -111,6 +111,9 @@ public class DHPhysicsController : MonoBehaviour
         SetStates();
     }
 
+    /// <summary>
+    /// 프레임초기화. 
+    /// </summary>
     protected virtual void FrameInitialization()
     {
         State.WasGroundedLastFrame = State.isGrounded;
@@ -128,7 +131,6 @@ public class DHPhysicsController : MonoBehaviour
     protected void LocalFixedUpdate()
     {
         AirControl();
-        StepOffset();
         Rotating();
     }
 
@@ -139,12 +141,17 @@ public class DHPhysicsController : MonoBehaviour
         v.y = _rigidbody.velocity.y;
         _rigidbody.velocity = Vector3.Lerp(_rigidbody.velocity, v, 20f * Time.deltaTime);
     }
-
+    /// <summary>
+    /// 루트모션 동작 에니메이션. 루트모션의 동작을 스크립트 처리한다.
+    /// </summary>
     public void OnAnimatorMove()
     {
         ControlSpeed(defaultVelocity);
     }
-
+    /// <summary>
+    /// 경사면 velocity 오프셋 경사를 오를때 필요한다.
+    /// </summary>
+    /// <returns></returns>
     bool StepOffset()
     {
         if (input.PrimaryMovement.sqrMagnitude < 0.1 || !State.isGrounded)
@@ -166,7 +173,10 @@ public class DHPhysicsController : MonoBehaviour
         }
         return false;
     }
-
+    /// <summary>
+    /// 케릭터물리회전.
+    /// </summary>
+    /// <returns></returns>
     Vector3 Rotating()
     {
         Vector3 forward = mainCamara.transform.TransformDirection(Vector3.forward);
@@ -225,12 +235,14 @@ public class DHPhysicsController : MonoBehaviour
             State.isGrounded = true;
         }
         else
-        {
+        { 
+            //경사면을 내려갈때 힘을 줘 자연스럽게 내려가기위함.
+
             if (groundDistance >= groundCheckDistance)
             {
                 State.isGrounded = false;
                 verticalVelocity = _rigidbody.velocity.y;
-
+                // 중력값을 정하여 경사면을 내려갈때 아래로 힘을 더해준다. 점프상태일때는 해당사항없음.
                 if (!onStep && !State.isJumping)
                 {
                     _rigidbody.AddForce(transform.up * extraGravity * Time.deltaTime, ForceMode.VelocityChange);
@@ -244,12 +256,18 @@ public class DHPhysicsController : MonoBehaviour
 
     }
 
+    /// <summary>
+    /// 경사면의 각도.
+    /// </summary>
+    /// <returns></returns>
     public virtual float GroundAngle()
     {
         var groundAngle = Vector3.Angle(groundHit.normal, Vector3.up);
         return groundAngle;
     }
-
+    /// <summary>
+    /// 현재 그라운드와의 거리값계산.
+    /// </summary>
     void CheckGroundDistance()
     {
         if (isDead)
@@ -282,8 +300,8 @@ public class DHPhysicsController : MonoBehaviour
     }
 
     public float jumpCounter;
-    public float jumpHeight = 4f;
-    public float jumpForward = 3f;
+    public float jumpHeight = 7f;
+    public float jumpForward = 5f;
 
     public void ControlJumpBehaviour()
     {
@@ -314,31 +332,18 @@ public class DHPhysicsController : MonoBehaviour
         this.jumpCounter = jumpCounter;
         State.isJumping = active;
     }
-
-    protected bool jumpFwdCondition
-    {
-        get
-        {
-            Vector3 p1 = transform.position + _capsuleCollider.center + Vector3.up * -_capsuleCollider.height * 0.5F;
-            Vector3 p2 = p1 + Vector3.up * _capsuleCollider.height;
-            return Physics.CapsuleCastAll(p1, p2, _capsuleCollider.radius * 0.5f, transform.forward, 0.6f, groundLayer).Length == 0;
-        }
-    }
-
-
+    /// <summary>
+    /// 공중에서 움직임.
+    /// </summary>
     public void AirControl()
     {
         if (State.isGrounded)
             return;
 
-        //if (!jumpFwdCondition)
-        //    return;
-
         var speed = Mathf.Abs(input.PrimaryMovement.x) + Mathf.Abs(input.PrimaryMovement.y);
         var velY = transform.forward * jumpForward * speed;
         velY.y = _rigidbody.velocity.y;
 
-        Debug.Log(speed);
         if (State.jumpAirControl)
         {
             var vel = transform.forward * (jumpForward * speed);
