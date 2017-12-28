@@ -4,8 +4,9 @@ using System;
 using System.Collections;
 using UnityEngine.EventSystems;
 using UnityEngine.Events;
+using UnityEngine.Networking;
 
-public class DHPhysicsController : MonoBehaviour
+public class DHPhysicsController : NetworkBehaviour
 {
     public DHPhysicsControllerState State { get; protected set; }
 
@@ -59,7 +60,6 @@ public class DHPhysicsController : MonoBehaviour
         _rigidbody = behaviourManager.GetRigidBody;
         animator = behaviourManager.GetAnimator;
         mainCamara = behaviourManager.Getcamera;
-        mainCamara.target = transform;
         _rigidbody = behaviourManager.GetRigidBody;
 
         frictionPhysics = new PhysicMaterial();
@@ -86,22 +86,34 @@ public class DHPhysicsController : MonoBehaviour
         colliderRadius = GetComponent<CapsuleCollider>().radius;
         colliderHeight = GetComponent<CapsuleCollider>().height;
     }
-
-    protected virtual void ApplyGravity()
+    /// <summary>
+    /// 루트모션 동작 에니메이션. 루트모션의 동작을 스크립트 처리한다.
+    /// </summary>
+    public void OnAnimatorMove()
     {
-
+        if (isClient)
+        {
+            ControlSpeed(defaultVelocity);
+        }
     }
 
     private void Update()
     {
-        LocalUpdate();
+        if(isClient)
+        {
+            LocalUpdate();
+        }
     }
 
     private void FixedUpdate()
     {
-        LocalFixedUpdate();
+        if(isClient)
+        {
+            LocalFixedUpdate();
+        }
     }
 
+    [Client]
     public void LocalUpdate()
     {
         FrameInitialization();
@@ -114,12 +126,15 @@ public class DHPhysicsController : MonoBehaviour
     /// <summary>
     /// 프레임초기화. 
     /// </summary>
+
+    [Client]
     protected virtual void FrameInitialization()
     {
         State.WasGroundedLastFrame = State.isGrounded;
         State.Reset();
     }
 
+    [Client]
     protected virtual void SetStates()
     {
         if (!State.WasGroundedLastFrame && State.isGrounded)
@@ -128,12 +143,14 @@ public class DHPhysicsController : MonoBehaviour
         }
     }
 
+    [Client]
     protected void LocalFixedUpdate()
     {
         AirControl();
         Rotating();
     }
 
+    [Client]
     public void ControlSpeed(float velocity)
     {
         var deltaPosition = new Vector3(animator.deltaPosition.x, transform.position.y, animator.deltaPosition.z);
@@ -142,16 +159,11 @@ public class DHPhysicsController : MonoBehaviour
         _rigidbody.velocity = Vector3.Lerp(_rigidbody.velocity, v, 20f * Time.deltaTime);
     }
     /// <summary>
-    /// 루트모션 동작 에니메이션. 루트모션의 동작을 스크립트 처리한다.
-    /// </summary>
-    public void OnAnimatorMove()
-    {
-        ControlSpeed(defaultVelocity);
-    }
-    /// <summary>
     /// 경사면 velocity 오프셋 경사를 오를때 필요한다.
     /// </summary>
     /// <returns></returns>
+
+    [Client]
     bool StepOffset()
     {
         if (input.PrimaryMovement.sqrMagnitude < 0.1 || !State.isGrounded)
@@ -177,8 +189,12 @@ public class DHPhysicsController : MonoBehaviour
     /// 케릭터물리회전.
     /// </summary>
     /// <returns></returns>
-    Vector3 Rotating()
+    [Client]
+    void Rotating()
     {
+        if (!isLocalPlayer)
+            return;
+
         Vector3 forward = mainCamara.transform.TransformDirection(Vector3.forward);
 
         forward.y = 0.0f;
@@ -200,10 +216,9 @@ public class DHPhysicsController : MonoBehaviour
         {
             behaviourManager.Repositioning();
         }
-
-        return targetDirection;
     }
 
+    [Client]
     void CheckGround()
     {
         if (isDead)
@@ -223,10 +238,10 @@ public class DHPhysicsController : MonoBehaviour
 
         var magVel = (float)System.Math.Round(new Vector3(_rigidbody.velocity.x, 0, _rigidbody.velocity.z).magnitude, 2);
         magVel = Mathf.Clamp(magVel, 0, 1);
-        
+
         // var groundCheckDistance = groundMinDistance;
         var groundCheckDistance = groundMaxDistance;
-       // if (magVel > 0.25f) groundCheckDistance = groundMaxDistance;
+        // if (magVel > 0.25f) groundCheckDistance = groundMaxDistance;
 
         var onStep = StepOffset();
 
@@ -235,7 +250,7 @@ public class DHPhysicsController : MonoBehaviour
             State.isGrounded = true;
         }
         else
-        { 
+        {
             //경사면을 내려갈때 힘을 줘 자연스럽게 내려가기위함.
 
             if (groundDistance >= groundCheckDistance)
@@ -260,6 +275,8 @@ public class DHPhysicsController : MonoBehaviour
     /// 경사면의 각도.
     /// </summary>
     /// <returns></returns>
+
+    [Client]
     public virtual float GroundAngle()
     {
         var groundAngle = Vector3.Angle(groundHit.normal, Vector3.up);
@@ -268,6 +285,8 @@ public class DHPhysicsController : MonoBehaviour
     /// <summary>
     /// 현재 그라운드와의 거리값계산.
     /// </summary>
+
+    [Client]
     void CheckGroundDistance()
     {
         if (isDead)
@@ -303,6 +322,7 @@ public class DHPhysicsController : MonoBehaviour
     public float jumpHeight = 7f;
     public float jumpForward = 5f;
 
+    [Client]
     public void ControlJumpBehaviour()
     {
         if (!State.isJumping)
@@ -335,6 +355,8 @@ public class DHPhysicsController : MonoBehaviour
     /// <summary>
     /// 공중에서 움직임.
     /// </summary>
+
+    [Client]
     public void AirControl()
     {
         if (State.isGrounded)

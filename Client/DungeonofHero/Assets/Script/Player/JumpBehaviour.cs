@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.Networking;
 
 public class JumpBehaviour : GenericBehaviour
 {
@@ -8,6 +9,8 @@ public class JumpBehaviour : GenericBehaviour
     {
         base.Initialization();
     }
+
+    [Client]
     protected override void HandleInput()
     {
         if (movement.CurrentState != CharacterStates.MovementStates.Jumping && inputmanager.JumpButton.State.CurrentState == DHInput.ButtonStates.ButtonDown)
@@ -16,6 +19,7 @@ public class JumpBehaviour : GenericBehaviour
         }
     }
 
+    [Client]
     void JumpStart()
     {
         if (!EvaluateJumpConditions())
@@ -27,6 +31,7 @@ public class JumpBehaviour : GenericBehaviour
         _animator.CrossFadeInFixedTime("jump_start", 0.1f);
     }
 
+    [Client]
     protected virtual bool EvaluateJumpConditions()
     {
         if (_controller.State.isJumping || condition.CurrentState != CharacterStates.CharacterConditions.Normal)

@@ -4,7 +4,7 @@ using UnityEngine.Networking;
 /// <summary>
 /// 케릭터 행동처리 , ex) 움직임 , 점프 ..
 /// </summary>
-public class BasicBehaviour : MonoBehaviour
+public class BasicBehaviour : NetworkBehaviour
 {
 
     public DHStateMachine<CharacterStates.MovementStates> movementState;
@@ -36,6 +36,7 @@ public class BasicBehaviour : MonoBehaviour
 
     protected virtual void Initialization()
     {
+        Debug.Log(gameObject.name);
         _controller = GetComponent<DHPhysicsController>();
         movementState = new DHStateMachine<CharacterStates.MovementStates>(gameObject, SendStateChangeEvents);
         conditionState = new DHStateMachine<CharacterStates.CharacterConditions>(gameObject, SendStateChangeEvents);
@@ -60,19 +61,43 @@ public class BasicBehaviour : MonoBehaviour
         DHAnimator.AddAnimatorParamaterIfExists(animator, "Grounded", AnimatorControllerParameterType.Bool, _animatorParameters);
         DHAnimator.AddAnimatorParamaterIfExists(animator, "VerticalVelocity", AnimatorControllerParameterType.Float, _animatorParameters);
         DHAnimator.AddAnimatorParamaterIfExists(animator, "GroundDistance", AnimatorControllerParameterType.Float, _animatorParameters);
-     
+
     }
 
     void Update()
     {
-        EveryFrame();
+        if (isClient)
+        {
+            EveryFrame();
+        }
+
+        if(isServer)
+        {
+            ServerFrame();
+        }
+    }
+
+    [Server]
+    protected virtual void ServerFrame()
+    {
+        foreach (GenericBehaviour behaviour in overridingBehaviours)
+        {
+            if (behaviour.enabled && behaviour.behaviourInitialized)
+            {
+                behaviour.ServerFrame();
+            }
+        }
     }
 
     protected virtual void FixedUpdate()
     {
-        FixedProcessAbilities();
+        if (isClient)
+        {
+            FixedProcessAbilities();
+        }
     }
 
+    [Client]
     protected virtual void EveryFrame()
     {
         EarlyProcessAbilities();
@@ -81,6 +106,7 @@ public class BasicBehaviour : MonoBehaviour
         UpdateAnimators();
     }
 
+    [Client]
     protected virtual void EarlyProcessAbilities()
     {
         foreach (GenericBehaviour behaviour in overridingBehaviours)
@@ -92,6 +118,7 @@ public class BasicBehaviour : MonoBehaviour
         }
     }
 
+    [Client]
     protected virtual void ProcessAbilities()
     {
         foreach (GenericBehaviour behaviour in overridingBehaviours)
@@ -103,6 +130,7 @@ public class BasicBehaviour : MonoBehaviour
         }
     }
 
+    [Client]
     protected virtual void LateProcessAbilities()
     {
         foreach (GenericBehaviour behaviour in overridingBehaviours)
@@ -114,6 +142,7 @@ public class BasicBehaviour : MonoBehaviour
         }
     }
 
+    [Client]
     protected virtual void FixedProcessAbilities()
     {
         foreach (GenericBehaviour behaviour in overridingBehaviours)
@@ -126,6 +155,7 @@ public class BasicBehaviour : MonoBehaviour
         Repositioning();
     }
 
+    [Client]
     protected virtual void UpdateAnimators()
     {
         if (animator != null)
@@ -172,15 +202,15 @@ public class BasicBehaviour : MonoBehaviour
     }
 }
 
-public abstract class GenericBehaviour : MonoBehaviour
+public abstract class GenericBehaviour : NetworkBehaviour
 {
     protected int speedFloat;
     protected BasicBehaviour behaviourManager;
     protected InputManager inputmanager;
     protected Animator _animator;
     protected Rigidbody _rigidbody;
-
     protected DHStateMachine<CharacterStates.MovementStates> movement;
+
     protected DHStateMachine<CharacterStates.CharacterConditions> condition;
     protected DHPhysicsController _controller;
     public bool behaviourInitialized = false;
@@ -193,6 +223,11 @@ public abstract class GenericBehaviour : MonoBehaviour
     protected void Start()
     {
         Initialization();
+    }
+
+    public override void OnStartLocalPlayer()
+    {
+        Camera.main.GetComponent<CameraMMO>().target = transform;
     }
 
     protected virtual void Initialization()
@@ -214,21 +249,39 @@ public abstract class GenericBehaviour : MonoBehaviour
         }
     }
 
+    [Server]
+    public virtual void ServerFrame()
+    {
 
-    public virtual void EarlyProcessAbility() { InternalHandleInput(); }
+    }
 
+    [Client]
+    public virtual void EarlyProcessAbility()
+    {
+        InternalHandleInput();
+    }
+
+    [Client]
     public virtual void ProcessAbility() { }
 
+    [Client]
     public virtual void LateProcessAbility() { }
 
+    [Client]
     public virtual void LocalFixedUpdate() { }
 
+    [Client]
     public virtual void LocalLateUpdate() { }
 
+    [Client]
     public virtual void UpdateAnimator() { }
 
+    [Client]
     protected virtual void InternalHandleInput()
     {
+        if (!isLocalPlayer)
+            return;
+
         if (inputmanager == null)
             return;
 
@@ -237,6 +290,7 @@ public abstract class GenericBehaviour : MonoBehaviour
         HandleInput();
     }
 
+    [Client]
     protected virtual void HandleInput() { }
 
     protected virtual void InitializeAnimatorParameters()

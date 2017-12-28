@@ -12,6 +12,7 @@ public class MoveBehaviour : GenericBehaviour
         canSprint = false;
     }
 
+    [Client]
     protected override void HandleInput()
     {
         if (inputmanager.SprintButton.State.CurrentState == DHInput.ButtonStates.ButtonDown || inputmanager.SprintButton.State.CurrentState == DHInput.ButtonStates.ButtonPressed)
@@ -24,32 +25,35 @@ public class MoveBehaviour : GenericBehaviour
         }
     }
 
+    [Client]
     public override void ProcessAbility()
     {
-            base.ProcessAbility();
-            MovementManagement();
+        base.ProcessAbility();
+        MovementManagement();
+
     }
 
+    [Client]
     void MovementManagement()
-	{
+    {
         if (_controller.State.JustGotGrounded)
         {
-            _rigidbody.useGravity = true;
-            movement.ChangeState(CharacterStates.MovementStates.Idle);
+            _rigidbody.useGravity = true; // 서버측 -> 중력킴.
+            movement.ChangeState(CharacterStates.MovementStates.Idle); // 서버측 -> Idle.
         }
 
-		Vector2 dir = new Vector2(horizontalInput, verticalInput);
-		speed = Vector2.ClampMagnitude(dir, 1f).magnitude;
+        Vector2 dir = new Vector2(horizontalInput, verticalInput);
+        speed = Vector2.ClampMagnitude(dir, 1f).magnitude;
         _controller.SetForce(dir);
 
         if (speed != 0
             && _controller.State.isGrounded
             && movement.CurrentState == CharacterStates.MovementStates.Idle)
         {
-            movement.ChangeState(CharacterStates.MovementStates.Running);
+            movement.ChangeState(CharacterStates.MovementStates.Running); // 서버측 -> Running.
         }
 
-        if (speed == 0 
+        if (speed == 0
             && _controller.State.isGrounded
             && movement.CurrentState == CharacterStates.MovementStates.Running)
         {
@@ -59,7 +63,7 @@ public class MoveBehaviour : GenericBehaviour
         if (!_controller.State.isGrounded &&
             ((movement.CurrentState == CharacterStates.MovementStates.Running) || (movement.CurrentState == CharacterStates.MovementStates.Idle)))
         {
-            movement.ChangeState(CharacterStates.MovementStates.Falling);
+            movement.ChangeState(CharacterStates.MovementStates.Falling); // 서버측 -> Falling.
         }
 
         if (canSprint)
@@ -75,10 +79,11 @@ public class MoveBehaviour : GenericBehaviour
         RegisterAnimatorParameter("Movement", AnimatorControllerParameterType.Bool);
     }
 
+    [Client]
     public override void UpdateAnimator()
     {
         DHAnimator.UpdateAnimatorFloat(_animator, "Speed", speed);
-        DHAnimator.UpdateAnimatorFloat(_animator, "InputVertical", speed , 0.25f);
+        DHAnimator.UpdateAnimatorFloat(_animator, "InputVertical", speed, 0.25f);
         DHAnimator.UpdateAnimatorBool(_animator, "Movement", movement.CurrentState == CharacterStates.MovementStates.Running);
     }
 }
